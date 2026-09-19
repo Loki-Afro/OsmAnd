@@ -235,7 +235,8 @@ public class MapSelectionHelper {
 
 				String routeId = tags.get(ROUTE_ID);
 				boolean isNewOsmRoute = isNewOsmRoute(routeId, isTravelGpx);
-				boolean isSpecial = isOldOsmRoute || isNewOsmRoute || isTravelGpx || isClickableWay;
+				boolean isRenderedNetworkRoute = isRenderedNetworkRoute(tags);
+				boolean isSpecial = isOldOsmRoute || isNewOsmRoute || isRenderedNetworkRoute || isTravelGpx || isClickableWay;
 
 				boolean shouldFilterRenderedObject = renderedObject.getId() == null
 						|| !renderedObject.isVisible() || renderedObject.isDrawOnPath();
@@ -272,7 +273,7 @@ public class MapSelectionHelper {
 					objectLatLon = renderedObject.getLabelLatLon(); // @NonNull
 				}
 
-				if (isNewOsmRoute || isOldOsmRoute) {
+				if (isNewOsmRoute || isOldOsmRoute || isRenderedNetworkRoute) {
 					NetworkRouteSelectorFilter enabledRouteTypes = createRouteFilter();
 					addFilteredOsmRoutesAtLatLon(objectLatLon, enabledRouteTypes, result);
 				}
@@ -352,11 +353,12 @@ public class MapSelectionHelper {
 
 						String routeId = tags.get(ROUTE_ID);
 						boolean isNewOsmRoute = isNewOsmRoute(routeId, isTravelGpx);
-						boolean isSpecial = isOldOsmRoute || isNewOsmRoute || isTravelGpx || isClickableWay;
+						boolean isRenderedNetworkRoute = isRenderedNetworkRoute(tags);
+						boolean isSpecial = isOldOsmRoute || isNewOsmRoute || isRenderedNetworkRoute || isTravelGpx || isClickableWay;
 
 						if (rules.isOnlyPoints() && isSpecial) continue;
 
-						if (isNewOsmRoute || isOldOsmRoute) {
+						if (isNewOsmRoute || isOldOsmRoute || isRenderedNetworkRoute) {
 							NetworkRouteSelectorFilter enabledRouteTypes = createRouteFilter();
 							addFilteredOsmRoutesAtLatLon(objectLatLon, enabledRouteTypes, result);
 						}
@@ -648,6 +650,14 @@ public class MapSelectionHelper {
 			}
 		}
 		return tagsMap;
+	}
+
+	private static boolean isRenderedNetworkRoute(@NonNull Map<String, String> tags) {
+		String routeType = tags.get("route_type");
+		return "foot".equals(routeType)
+				|| "hiking".equals(routeType)
+				|| "cycling".equals(routeType)
+				|| "bicycle".equals(routeType);
 	}
 
 	private static boolean isNewOsmRoute(@Nullable String routeId, boolean isTravelGpx) {
